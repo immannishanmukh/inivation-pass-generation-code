@@ -1,0 +1,86 @@
+from PIL import Image, ImageDraw, ImageFont
+import random
+import string
+import qrcode
+from pandas import read_excel
+global l;
+l = []
+def read_data_from_excel(excel_path):
+    df = read_excel(excel_path)
+    names = df['Candidates Name'].tolist()
+    colleges = df['Enter the name of your College'].tolist()  # Update the column name here
+    teams = df['Team Name'].tolist()
+    return names, colleges, teams
+
+def generate_invitation_pass(name, college, team, length=8):
+    characters = string.ascii_letters + string.digits
+    invitation_pass = ''.join(random.choice(characters) for _ in range(length))
+    print (invitation_pass)
+    l.append(invitation_pass)
+    return name, college, team, invitation_pass
+
+def generate_invitation_image(name, college, team, invitation_pass, background_image_path, save_path="invitation_image.png"):
+    background_image = Image.open(background_image_path)
+
+    image_size = (1605, 570)
+    background_image = background_image.resize(image_size)
+
+    img = Image.new('RGB', image_size)
+    img.paste(background_image, (0, 0))
+
+    draw = ImageDraw.Draw(img)
+
+    font_size_name = 30
+    font_name = ImageFont.truetype("arial.ttf", font_size_name)
+
+    name_position = (170, 178)
+    draw.text(name_position, f"{name}", font=font_name, fill=(255, 255, 255))
+
+    font_size_college = 25
+    font_college = ImageFont.truetype("arial.ttf", font_size_college)
+    college_position = (300, 275)
+    draw.text(college_position, f"{college}", font=font_college, fill=(255, 255, 255))
+
+    font_size_team = 30
+    font_team = ImageFont.truetype("arial.ttf", font_size_team)
+    team_position = (255, 225)
+    draw.text(team_position, f"{team}", font=font_team, fill=(255, 255, 255))
+
+    qr_code_position = (886, 190)
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=9,
+        border=2,
+    )
+    qr.add_data(invitation_pass)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    img.paste(qr_img, qr_code_position)
+
+    qr_data = invitation_pass
+    font_size_qr_data = 20
+    font_qr_data = ImageFont.truetype("arial.ttf", font_size_qr_data)
+    qr_data_position = (820, 460)
+    draw.text(qr_data_position, f"QR Code Data: {qr_data}", font=font_qr_data, fill=(255, 255, 255))
+
+    img.show()
+    img = img.save(f"{name}_invitation_image.png")
+
+# Excel file path
+excel_path = r"C:\Users\HP\Desktop\SOLVATHON 2K24 (Responses) (1).xlsx"
+
+# Read names, colleges, and teams from Excel file
+names, colleges, teams = read_data_from_excel(excel_path)
+
+for i in range(1):
+    # name = names[i]
+    name = "DANGETI VARAPRASAD"
+    # college = colleges[i]
+    college = "ADITYA POLYTECHNIC COLLEGE"
+    # team = teams[i]
+    team = "D EMPERORS"
+    invitation_info = generate_invitation_pass(name, college, team)
+    background_image_path = r"C:\Users\HP\Desktop\SOLVATHON_final.png"
+    generate_invitation_image(*invitation_info, background_image_path)
+print (l)
